@@ -1,0 +1,6 @@
+pid_node:
+  ros__parameters:
+    use_sim_time: true
+    KP : 0.41
+    KI : 0.06
+    KD : 0.53
