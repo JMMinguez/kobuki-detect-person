@@ -17,11 +17,27 @@
 #include "follow_person_cpp/PIDNode.hpp"
 #include "rclcpp/rclcpp.hpp"
 
+#include "geometry_msgs/msg/twist.hpp"
+
+#include "tf2_ros/transform_broadcaster.h"
+#include "tf2_ros/transform_listener.h"
+#include "tf2_ros/buffer.h"
+#include "tf2_msgs/msg/tf_message.hpp"
+
+using namespace std::chrono_literals;
+using std::placeholders::_1;
+
+
 namespace follow_person_cpp
 {
 PIDNode::PIDNode(double min_ref, double max_ref, double min_output, double max_output)
-: Node ("pid_node")
+: Node ("pid_node"),
+  lin_pid_(new PIDNode(0.0, 5.0, 0.0, 0.5)),
+  ang_pid_(new PIDNode(0.0, M_PI / 2, 0.0, 0.5)),
+  tf_buffer_(),
+  tf_listener_(tf_buffer_)
 {
+
   min_ref_ = min_ref;
   max_ref_ = max_ref;
   min_output_ = min_output;
@@ -35,6 +51,12 @@ PIDNode::PIDNode(double min_ref, double max_ref, double min_output, double max_o
   get_parameter("KP", KP_);
   get_parameter("KI", KI_);
   get_parameter("KD", KD_);
+
+  vel_pub_ = create_publisher<geometry_msgs::msg::Twist>("/cmd_vel", 10);
+
+  transform_sub_ = create_subscription<tf2_msgs::msg::TFMessage>(
+    "tf_static", rclcpp::SensorDataQoS().reliable(),
+    std::bind(&PIDNode::transform_callback, this, _1));
 }
 
 void
@@ -77,4 +99,71 @@ PIDNode::get_output(double new_reference)
   return std::clamp(output, -max_output_, max_output_);
 }
 
+void
+PIDNode::transform_callback(const tf2_msgs::msg::TFMessage::ConstSharedPtr & msg)
+{
+  lin_pid_->set_pid(0.6, 0.05, 0.35);
+  ang_pid_->set_pid(0.6, 0.08, 0.32);
+
+
+  RCLCPP_INFO(this->get_logger(), "Transform received");
+
+  for (int i = 0; i < std::size(msg->transforms); i++) {
+    fprintf(
+      stderr, "Received transform: %f, %f, %f, %f",
+      msg->transforms[i].transform.translation.x, msg->transforms[i].transform.translation.y,
+      msg->transforms[i].transform.rotation.x, msg->transforms[i].transform.rotation.y);
+
+    geometry_msgs::msg::Twist vel;
+    geometry_msgs::msg::TransformStamped odom2person_msg;
+
+    try {
+      odom2person_msg = tf_buffer_.lookupTransform(
+        "base_link", "person",
+        tf2::timeFromSec(rclcpp::Time(odom2person_msg.header.stamp).seconds()));
+      RCLCPP_INFO(get_logger(), "Cambio de Base_link");
+    } catch (tf2::TransformException & ex) {
+      RCLCPP_WARN(get_logger(), "Person transform not found: %s", ex.what());
+      return;
+    }
+
+    const auto & x = odom2person_msg.transform.translation.x;
+    const auto & y = odom2person_msg.transform.translation.y;
+
+    // Cálculo de distancia y ángulo
+    double distancia = sqrt(pow(x, 2) + pow(y, 2) );
+    double angulo = atan2(y, x);
+
+    // Si la distancia es menor de 1m se para
+    if (distancia <= 0.9) {   //distancia menor o igual a un metro
+      RCLCPP_INFO(get_logger(), "Persona encontrada");
+      vel.linear.x = 0;
+      vel.angular.z = 0;
+      vel_pub_->publish(vel);
+      return;
+    }
+
+    else if (distancia >= 1){
+      // Sino se establecen v.angular y v.lineal
+      vel.angular.z = ang_pid_->get_output(angulo);
+      RCLCPP_INFO(
+        this->get_logger(), "Velocidad angular(x:%f,y:%f =%f): %f", x, y, 
+        atan2(y,x ),
+        vel.angular.z);
+      vel.linear.x = lin_pid_->get_output(distancia);
+      RCLCPP_INFO(this->get_logger(), "Velocidad lineal: %f", vel.linear.x);
+
+      // Se publican velocidades
+      vel_pub_->publish(vel);
+
+    }
+    else {
+      RCLCPP_INFO(get_logger(), "Buscando personas");
+      vel.angular.z = 0.2;
+      vel_pub_->publish(vel);
+    }
+    //  out_sound.value = kobuki_ros_interfaces::msg::Sound::OFF;
+    
+  }
+}
 }  // namespace follow_person_cpp

@@ -11,3 +11,18 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+
+#include "rclcpp/rclcpp.hpp"
+#include "follow_person_cpp/FollowLifeCycle.hpp"
+
+int main(int argc, char * argv[])
+{
+  rclcpp::init(argc, argv);
+
+  auto node = follow_person_cpp::FollowLifeCycle::make_shared();
+
+  rclcpp::spin(node->get_node_base_interface());
+
+  rclcpp::shutdown();
+  return 0;
+}

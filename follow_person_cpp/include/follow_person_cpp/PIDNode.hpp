@@ -19,6 +19,12 @@
 
 #include "rclcpp/rclcpp.hpp"
 
+#include "geometry_msgs/msg/twist.hpp"
+#include "tf2_ros/transform_broadcaster.h"
+#include "tf2_ros/transform_listener.h"
+#include "tf2_ros/buffer.h"
+#include "tf2_msgs/msg/tf_message.hpp"
+
 namespace follow_person_cpp
 {
 
@@ -29,6 +35,7 @@ public:
 
   void set_pid(double n_KP, double n_KI, double n_KD);
   double get_output(double new_reference);
+  void transform_callback(const tf2_msgs::msg::TFMessage::ConstSharedPtr & msg);
 
 private:
   double KP_, KI_, KD_;
@@ -36,6 +43,19 @@ private:
   double min_ref_, max_ref_;
   double min_output_, max_output_;
   double prev_error_, int_error_;
+
+  rclcpp::Subscription<tf2_msgs::msg::TFMessage>::SharedPtr transform_sub_;
+
+  rclcpp::Publisher<geometry_msgs::msg::Twist>::SharedPtr vel_pub_;
+  geometry_msgs::msg::Twist vel;
+
+  //rclcpp::TimerBase::SharedPtr timer_;
+
+  PIDNode* lin_pid_;
+  PIDNode* ang_pid_;
+
+  tf2::BufferCore tf_buffer_;
+  tf2_ros::TransformListener tf_listener_;
 };
 
 }  // namespace follow_person_cpp

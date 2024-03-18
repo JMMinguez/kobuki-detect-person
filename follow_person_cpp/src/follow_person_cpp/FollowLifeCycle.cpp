@@ -11,3 +11,70 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+
+#include "rclcpp/rclcpp.hpp"
+#include "follow_person_cpp/FollowLifeCycle.hpp"
+#include "follow_person_cpp/PIDNode.hpp"
+#include "follow_person_cpp/TFPublisherNode.hpp"
+
+using namespace std::chrono_literals;
+using std::placeholders::_1;
+
+namespace follow_person_cpp
+{
+
+FollowLifeCycle::FollowLifeCycle()
+: rclcpp_lifecycle::LifecycleNode("follow_life_cycle"),
+  pid_node_(std::make_shared<PIDNode>()),
+  tf_publisher_node_(std::make_shared<TFPublisherNode>())
+{
+  timer_ = create_wall_timer(
+    100ms, std::bind(&FollowLifeCycle::checkPersonDetection, this));
+}
+
+void FollowLifeCycle::checkPersonDetection()
+{
+  if (pid_node_->get_current_state().id() == lifecycle_msgs::msg::State::PRIMARY_STATE_ACTIVE && !tf_publisher_node_->isPersonDetected())
+  {
+    auto request = std::make_shared<lifecycle_msgs::srv::ChangeState::Request>();
+    request->transition.id = lifecycle_msgs::msg::Transition::TRANSITION_DEACTIVATE;
+    control_activation_client_->async_send_request(request);
+  }
+}
+
+FollowLifeCycle::CallbackReturn
+FollowLifeCycle::on_configure(const rclcpp_lifecycle::State & previous_state)
+{
+  RCLCPP_INFO(get_logger(), "Configuring");
+  return CallbackReturn::SUCCESS;
+}
+
+FollowLifeCycle::CallbackReturn
+FollowLifeCycle::on_activate(const rclcpp_lifecycle::State & previous_state)
+{
+  RCLCPP_INFO(get_logger(), "Activating");
+  return CallbackReturn::SUCCESS;
+}
+
+FollowLifeCycle::CallbackReturn
+FollowLifeCycle::on_deactivate(const rclcpp_lifecycle::State & previous_state)
+{
+  RCLCPP_INFO(get_logger(), "Deactivating");
+  return CallbackReturn::SUCCESS;
+}
+
+FollowLifeCycle::CallbackReturn
+FollowLifeCycle::on_cleanup(const rclcpp_lifecycle::State & previous_state)
+{
+  RCLCPP_INFO(get_logger(), "Cleaning up");
+  return CallbackReturn::SUCCESS;
+}
+
+FollowLifeCycle::CallbackReturn
+FollowLifeCycle::on_shutdown(const rclcpp_lifecycle::State & previous_state)
+{
+  RCLCPP_INFO(get_logger(), "Shutting down");
+  return CallbackReturn::SUCCESS;
+}
+
+}  // namespace follow_person_cpp
