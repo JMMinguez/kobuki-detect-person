@@ -31,6 +31,8 @@ class TFPublisherNode : public rclcpp::Node
 {
 public:
   TFPublisherNode();
+  
+  bool isPersonDetected();
 
 private:
   void detection_callback(vision_msgs::msg::Detection3DArray::UniquePtr msg);
@@ -40,6 +42,7 @@ private:
   std::shared_ptr<tf2_ros::TransformBroadcaster> tf_broadcaster_;
   tf2::BufferCore tf_buffer_;
   tf2_ros::TransformListener tf_listener_;
+  bool person_;
 };
 
 }  // // namespace follow_person_cpp

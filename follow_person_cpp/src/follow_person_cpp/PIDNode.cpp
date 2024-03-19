@@ -15,6 +15,8 @@
 #include <algorithm>
 
 #include "follow_person_cpp/PIDNode.hpp"
+#include "follow_person_cpp/FollowLifeCycle.hpp"
+
 #include "rclcpp/rclcpp.hpp"
 
 #include "geometry_msgs/msg/twist.hpp"
@@ -165,5 +167,10 @@ PIDNode::transform_callback(const tf2_msgs::msg::TFMessage::ConstSharedPtr & msg
     //  out_sound.value = kobuki_ros_interfaces::msg::Sound::OFF;
     
   }
+
+const rclcpp_lifecycle::State PIDNode::get_current_state() const
+{
+  return this->get_current_state();
+}
 }
 }  // namespace follow_person_cpp

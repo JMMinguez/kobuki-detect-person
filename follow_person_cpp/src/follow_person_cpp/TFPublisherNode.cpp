@@ -54,12 +54,14 @@ TFPublisherNode::detection_callback(vision_msgs::msg::Detection3DArray::UniquePt
   tf2::Stamped<tf2::Transform> odom2camera;
 
   float len = std::size(msg->detections);
+  person_ = false;
 
   for (int i = 0; i < len; i++) {
 
     if (msg->detections[i].results[0].hypothesis.class_id == "person") {
       
       RCLCPP_INFO(get_logger(), "detected_person");
+      person_ = true;
 
       float x = msg->detections[i].bbox.center.position.x,
         y = msg->detections[i].bbox.center.position.y,
@@ -90,6 +92,12 @@ TFPublisherNode::detection_callback(vision_msgs::msg::Detection3DArray::UniquePt
       tf_broadcaster_->sendTransform(odom2person_msg);
     }
   }
+}
+
+bool 
+TFPublisherNode::isPersonDetected()
+{
+  return person_;
 }
 
 }  // namespace follow_person_cpp

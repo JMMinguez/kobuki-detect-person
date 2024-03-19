@@ -18,6 +18,8 @@
 #include "rclcpp/node.hpp"
 #include "rclcpp_lifecycle/lifecycle_node.hpp"
 #include "rclcpp/macros.hpp"
+#include "lifecycle_msgs/srv/change_state.hpp"
+#include "lifecycle_msgs/msg/state.hpp"
 
 #include "follow_person_cpp/PIDNode.hpp"
 #include "follow_person_cpp/TFPublisherNode.hpp"
@@ -26,6 +28,8 @@
 
 namespace follow_person_cpp
 {
+  class PIDNode;
+
 class FollowLifeCycle : public rclcpp_lifecycle::LifecycleNode
 {
 public:
@@ -44,9 +48,12 @@ public:
   CallbackReturn on_error(const rclcpp_lifecycle::State & previous_state);
 
 private:
-  std::shared_ptr<PIDNode> pid_node_;
-  std::shared_ptr<TFPublisherNode> tf_publisher_node_;
+  std::shared_ptr<PIDNode> pid_node;
+  std::shared_ptr<TFPublisherNode> tf_node;
   rclcpp::TimerBase::SharedPtr timer_;
+
+  rclcpp::Client<lifecycle_msgs::srv::ChangeState>::SharedPtr control_activation_client_;
+  const rclcpp_lifecycle::State get_current_state() const;
 };
 
 }  // namespace follow_person_cpp

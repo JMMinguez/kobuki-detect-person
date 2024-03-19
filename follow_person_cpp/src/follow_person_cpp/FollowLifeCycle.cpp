@@ -25,8 +25,8 @@ namespace follow_person_cpp
 
 FollowLifeCycle::FollowLifeCycle()
 : rclcpp_lifecycle::LifecycleNode("follow_life_cycle"),
-  pid_node_(std::make_shared<PIDNode>()),
-  tf_publisher_node_(std::make_shared<TFPublisherNode>())
+  pid_node(std::make_shared<PIDNode>()),
+  tf_node(std::make_shared<TFPublisherNode>())
 {
   timer_ = create_wall_timer(
     100ms, std::bind(&FollowLifeCycle::checkPersonDetection, this));
@@ -34,7 +34,7 @@ FollowLifeCycle::FollowLifeCycle()
 
 void FollowLifeCycle::checkPersonDetection()
 {
-  if (pid_node_->get_current_state().id() == lifecycle_msgs::msg::State::PRIMARY_STATE_ACTIVE && !tf_publisher_node_->isPersonDetected())
+  if (pid_node->get_current_state().id() == lifecycle_msgs::msg::State::PRIMARY_STATE_ACTIVE && !tf_node->isPersonDetected())
   {
     auto request = std::make_shared<lifecycle_msgs::srv::ChangeState::Request>();
     request->transition.id = lifecycle_msgs::msg::Transition::TRANSITION_DEACTIVATE;

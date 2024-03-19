@@ -16,6 +16,7 @@ find_package(vision_msgs REQUIRED)
 find_package(rclcpp_lifecycle REQUIRED)
 find_package(std_msgs REQUIRED)
 find_package(tf2_msgs REQUIRED)
+find_package(lifecycle_msgs REQUIRED)
 
 set(dependencies
   rclcpp
@@ -26,7 +27,8 @@ set(dependencies
   geometry_msgs
   vision_msgs
   rclcpp_lifecycle
-  std_msgs 
+  std_msgs
+  lifecycle_msgs
 )
 
 include_directories(include)
