@@ -28,7 +28,7 @@ def generate_launch_description():
         package='follow_person_cpp',
         executable='TFPublisher_main',
         parameters=[{
-            'use_sim_time': False
+            'use_sim_time': True
         }],
         remappings=[
             ('input_detection', '/detection3d'),
@@ -40,7 +40,7 @@ def generate_launch_description():
         package='follow_person_cpp',
         executable='FollowLifeCycle_main',
         parameters=[{
-            'use_sim_time': False
+            'use_sim_time': True
         }],
         output='screen'
     )

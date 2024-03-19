@@ -47,6 +47,11 @@ public:
   CallbackReturn on_shutdown(const rclcpp_lifecycle::State & previous_state);
   CallbackReturn on_error(const rclcpp_lifecycle::State & previous_state);
 
+  double min_ref;
+  double max_ref;
+  double min_output;
+  double max_output;
+
 private:
   std::shared_ptr<PIDNode> pid_node;
   std::shared_ptr<TFPublisherNode> tf_node;

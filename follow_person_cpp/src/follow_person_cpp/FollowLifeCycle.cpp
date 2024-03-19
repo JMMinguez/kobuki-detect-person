@@ -25,7 +25,11 @@ namespace follow_person_cpp
 
 FollowLifeCycle::FollowLifeCycle()
 : rclcpp_lifecycle::LifecycleNode("follow_life_cycle"),
-  pid_node(std::make_shared<PIDNode>()),
+  min_ref(0.0),
+  max_ref(5.0),
+  min_output(0.0),
+  max_output(0.5),
+  pid_node(std::make_shared<PIDNode>(min_ref, max_ref, min_output, max_output)),
   tf_node(std::make_shared<TFPublisherNode>())
 {
   timer_ = create_wall_timer(
@@ -75,6 +79,13 @@ FollowLifeCycle::on_shutdown(const rclcpp_lifecycle::State & previous_state)
 {
   RCLCPP_INFO(get_logger(), "Shutting down");
   return CallbackReturn::SUCCESS;
+}
+
+FollowLifeCycle::CallbackReturn
+FollowLifeCycle::on_error(const rclcpp_lifecycle::State & previous_state)
+{
+  RCLCPP_INFO(get_logger(), "Error State");
+  return rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn::SUCCESS;
 }
 
 }  // namespace follow_person_cpp

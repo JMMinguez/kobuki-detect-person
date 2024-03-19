@@ -168,9 +168,10 @@ PIDNode::transform_callback(const tf2_msgs::msg::TFMessage::ConstSharedPtr & msg
     
   }
 
+}
+
 const rclcpp_lifecycle::State PIDNode::get_current_state() const
 {
   return this->get_current_state();
-}
 }
 }  // namespace follow_person_cpp
